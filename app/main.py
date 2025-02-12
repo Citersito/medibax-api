@@ -1,38 +1,27 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:8080",  # Ip del Front en Back
+    # "http://192.168.137.184:8080",  # El Ip del fronend
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"], 
-    allow_headers=["*"],  
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
 
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
-
+    return {"Hello": "MediBax"}
 
 @app.get("/test")
 def test():
-    return {"Conexión": "Exitosa"}
-
-
-class LoginData(BaseModel):
-    username: str
-    password: str
-
-@app.post("/login")
-async def login(data: LoginData):
-    if data.username == "user" and data.password == "pass":
-        return {"message": "Login successful"}
-    raise HTTPException(status_code=401, detail="Invalid credentials")
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    return {"Test": "Coneccion Exitosa"}
