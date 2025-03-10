@@ -4,13 +4,14 @@ from flask_restx import Api
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_cors import CORS
-from config import Config
 from dotenv import load_dotenv
+load_dotenv()
+from config import Config
 
 db = SQLAlchemy()
 api = Api()
 bcrypt = Bcrypt()
-load_dotenv()
+
 login_manager = LoginManager()
 
 def create_app():
