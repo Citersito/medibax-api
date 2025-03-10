@@ -1,6 +1,7 @@
 from . import db, bcrypt, login_manager
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from flask_login import UserMixin
+from datetime import datetime
 
 class User(UserMixin, db.Model):
     __tablename__ = 'usuarios'
@@ -8,6 +9,8 @@ class User(UserMixin, db.Model):
     id_usuario = db.Column(db.Integer, primary_key=True, index=True)
     email = db.Column(db.String(120), unique=True, index=True)
     password = db.Column(db.String(128))  
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def __init__(self, email, password):
         self.email = email
@@ -53,8 +56,10 @@ class Paciente(db.Model):
     ciudad = db.Column(db.String(120))
     estado_civil = db.Column(db.String(120))
     ocupacion = db.Column(db.String(120))
-    id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'))
+    id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario', ondelete='CASCADE'))
     usuario = db.relationship('User', backref=db.backref('pacientes', lazy=True))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def __init__(self, nombre, apellido_paterno, apellido_materno, curp, telefono, direccion, estado, ciudad, estado_civil, ocupacion, id_usuario, nombre_segundo=None):
         self.nombre = nombre
@@ -117,4 +122,75 @@ class Paciente(db.Model):
         db.session.delete(self)
         db.session.commit()
         
+
+class Expediente(db.Model):
+    __tablename__ = 'expedientes'
         
+    id_expediente = db.Column(db.Integer, primary_key=True, index=True)
+    id_paciente = db.Column(db.Integer, db.ForeignKey('pacientes.id_paciente', ondelete='CASCADE'))
+    paciente = db.relationship('Paciente', backref=db.backref('expedientes', lazy=True))
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    descripcion = db.Column(db.String(120))        
+    
+    @staticmethod
+    def get_expediente_by_id(id_expediente):
+        return Expediente.query.filter_by(id_expediente=id_expediente).first()
+
+
+class ModificacionExpediente(db.Model):
+    __tablename__ = 'modificaciones_expedientes'
+    
+    id_modificacion = db.Column(db.Integer, primary_key=True, index=True)
+    id_expediente = db.Column(db.Integer, db.ForeignKey('expedientes.id_expediente', ondelete='CASCADE'))
+    expediente = db.relationship('Expediente', backref=db.backref('modificaciones', lazy=True))
+    fecha_modificacion = db.Column(db.DateTime, default=datetime.utcnow)
+    descripcion = db.Column(db.String(120))
+    
+    @staticmethod
+    def get_modificacion_by_id(id_modificacion):
+        return ModificacionExpediente.query.filter_by(id_modificacion=id_modificacion).first()
+    
+    @staticmethod
+    def get_modificaciones_by_expediente(id_expediente):
+        return ModificacionExpediente.query.filter_by(id_expediente=id_expediente).all()
+    
+    @staticmethod
+    def create_modificacion_expediente(id_expediente, descripcion):
+        modificacion = ModificacionExpediente(id_expediente=id_expediente, descripcion=descripcion)
+        db.session.add(modificacion)
+        db.session.commit()
+        return modificacion
+    
+
+class HistoriaClinica(db.Model):
+    __tablename__ = 'historias_clinicas'
+    
+    id_historia_clinica = db.Column(db.Integer, primary_key=True, index=True)
+    id_expediente = db.Column(db.Integer, db.ForeignKey('expedientes.id_expediente', ondelete='CASCADE'))
+    expediente = db.relationship('Expediente', backref=db.backref('historias_clinicas', lazy=True))
+    motivo_consulta = db.Column(db.String(120))
+    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    @staticmethod
+    def get_historia_clinica_by_id(id_historia_clinica):
+        return HistoriaClinica.query.filter_by(id_historia_clinica=id_historia_clinica).first()
+    
+
+class AntecedentesPersonales(db.Model):
+    __tablename__ = 'antecedentes_personales'
+    
+    id_antecedente_personal = db.Column(db.Integer, primary_key=True, index=True)
+    id_expediente = db.Column(db.Integer, db.ForeignKey('expedientes.id_expediente', ondelete='CASCADE'))
+    expediente = db.relationship('Expediente', backref=db.backref('antecedentes_personales', lazy=True))
+    descripcion = db.Column(db.String(120))
+    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)    
+    
+    
+class AntecedentesFamiliares(db.Model):
+    __tablename__ = 'antecedentes_familiares'
+    
+    id_antecedente_familiar = db.Column(db.Integer, primary_key=True, index=True)
+    id_expediente = db.Column(db.Integer, db.ForeignKey('expedientes.id_expediente', ondelete='CASCADE'))
+    expediente = db.relationship('Expediente', backref=db.backref('antecedentes_familiares', lazy=True))
+    descripcion = db.Column(db.String(120))
+    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
