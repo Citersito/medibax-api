@@ -16,7 +16,7 @@ def is_valid_email(email):
     return re.match(email_regex, email) is not None
 
 def is_valid_password(password):
-    if len(password) < 8:
+    if len(password) < 7:
         return False
     if not re.search(r'[A-Z]', password):
         return False
@@ -38,7 +38,7 @@ class SignUp(Resource):
             return {'message': 'Invalid email format'}, 400
 
         if not is_valid_password(password):
-            return {'message': 'Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, and one number'}, 400
+            return {'message': 'Password must be at least 7 characters long, contain at least one uppercase letter, one lowercase letter, and one number'}, 400
         
         if User.query.filter_by(email=email).first():
             return {'message': 'User already exists'}, 409
