@@ -2,16 +2,14 @@ from . import db, bcrypt, login_manager
 from sqlalchemy import Column, Integer, String
 from flask_login import UserMixin
 
-class User(UserMixin,db.Model):
-    __tablename__ = 'users'
+class User(UserMixin, db.Model):
+    __tablename__ = 'usuarios'
     
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(30), unique=True, index=True)
     email = Column(String(120), unique=True, index=True)
     password = Column(String(128))  
     
-    def __init__(self, username, email, password):
-        self.username = username
+    def __init__(self, email, password):
         self.email = email
         if password:
             self.setPassword(password) 
@@ -23,15 +21,15 @@ class User(UserMixin,db.Model):
         return bcrypt.check_password_hash(self.password, password)
             
     @staticmethod
-    def create_user(username, email, password):
-        user = User(username, email, password)  
+    def create_user(email, password):
+        user = User(email, password)  
         db.session.add(user)
         db.session.commit()
         return user
     
     @staticmethod
-    def get_user_by_username(username):
-        return User.query.filter_by(username=username).first()
+    def get_user_by_email(email):
+        return User.query.filter_by(email=email).first()
     
 @login_manager.user_loader
 def load_user(user_id):
