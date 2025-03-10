@@ -12,12 +12,10 @@ auth_model = auth.model('Auth', {
 })
 
 def is_valid_email(email):
-    """Validate the email format."""
     email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
     return re.match(email_regex, email) is not None
 
 def is_valid_password(password):
-    """Validate the password length and complexity."""
     if len(password) < 8:
         return False
     if not re.search(r'[A-Z]', password):
