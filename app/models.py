@@ -116,3 +116,5 @@ class Paciente(db.Model):
     def delete_paciente(self):
         db.session.delete(self)
         db.session.commit()
+        
+        

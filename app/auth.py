@@ -1,7 +1,7 @@
 from flask import request, jsonify, current_app
 from flask_restx import Namespace, Resource, fields
 from flask_login import login_user, logout_user, login_required
-from app.models import User
+from app.models import User, Paciente
 import re
 
 auth = Namespace('auth', description='Auth operations')
@@ -44,6 +44,7 @@ class SignUp(Resource):
             return {'message': 'User already exists'}, 409
         
         new_user = User.create_user(email=email, password=password)
+        new_Paciente = Paciente.create_paciente(nombre = None, apellido_paterno = None, apellido_materno = None, curp = None, telefono = None, direccion = None, estado = None, ciudad = None, estado_civil = None, ocupacion = None, id_usuario = new_user.id_usuario)
         return {'message': 'User created successfully', 'user': new_user.email}, 201
         
 
