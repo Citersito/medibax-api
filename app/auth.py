@@ -1,7 +1,7 @@
-from flask import request, jsonify, current_app
+from flask import request, jsonify
 from flask_restx import Namespace, Resource, fields
-from flask_login import login_user, logout_user, login_required
 from app.models import User, Paciente
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import re
 
 auth = Namespace('auth', description='Auth operations')
@@ -44,9 +44,10 @@ class SignUp(Resource):
             return {'message': 'User already exists'}, 409
         
         new_user = User.create_user(email=email, password=password)
-        new_Paciente = Paciente.create_paciente(nombre = None, apellido_paterno = None, apellido_materno = None, curp = None, telefono = None, direccion = None, estado = None, ciudad = None, estado_civil = None, ocupacion = None, id_usuario = new_user.id_usuario)
-        return {'message': 'User created successfully', 'user': new_user.email}, 201
+        new_Paciente = Paciente.create_paciente(nombre=None, apellido_paterno=None, apellido_materno=None, curp=None, telefono=None, direccion=None, estado=None, ciudad=None, estado_civil=None, ocupacion=None, id_usuario=new_user.id_usuario)
+        access_token = create_access_token(identity=new_user.id_usuario)
         
+        return {'message': 'User created successfully', 'user': new_user.email, 'access_token': access_token}, 201
 
 @auth.route('/login')
 class Login(Resource):
@@ -64,18 +65,25 @@ class Login(Resource):
 
         user = User.query.filter_by(email=email).first()
         
-        if user and user.checkPassword(password):
-            login_user(user)
-            return {'message': 'Login successful', 'user': user.email}, 200
+        if user and user.check_password(password):
+            access_token = create_access_token(identity=user.id_usuario)
+            return {'message': 'Login successful', 'user': user.email, 'access_token': access_token}, 200
         
         return {'message': 'Invalid email or password'}, 401
-    
+
 @auth.route('/logout')
 class Logout(Resource):
-    @login_required
+    @jwt_required()
     def post(self):
-        logout_user()
+        # No need to logout with JWT; just remove the token on the client side
         return {'message': 'Logout successful'}, 200
     
+@auth.route('/protected')
+class Protected(Resource):
+    @jwt_required()
+    def get(self):
+        current_user = get_jwt_identity()
+        return {'message': f'Hello, user {current_user}'}, 200
+
 def init_auth_routes(api):
     api.add_namespace(auth)

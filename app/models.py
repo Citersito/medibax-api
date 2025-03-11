@@ -36,6 +36,9 @@ class User(UserMixin, db.Model):
     def get_user_by_email(email):
         return User.query.filter_by(email=email).first()
     
+    def get_id(self):
+        return self.id_usuario
+    
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -77,8 +80,6 @@ class Paciente(db.Model):
         
     @staticmethod
     def create_paciente(nombre, apellido_paterno, apellido_materno, curp, telefono, direccion, estado, ciudad, estado_civil, ocupacion, id_usuario, nombre_segundo=None):
-        if Paciente.get_paciente_by_curp(curp):
-            raise ValueError("El paciente con este CURP ya existe.")
         paciente = Paciente(nombre, apellido_paterno, apellido_materno, curp, telefono, direccion, estado, ciudad, estado_civil, ocupacion, id_usuario, nombre_segundo)
         db.session.add(paciente)
         db.session.commit()

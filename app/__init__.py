@@ -5,13 +5,14 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_cors import CORS
 from dotenv import load_dotenv
+from flask_jwt_extended import JWTManager
 load_dotenv()
 from config import Config
 
 db = SQLAlchemy()
 api = Api()
 bcrypt = Bcrypt()
-
+jwt = JWTManager()
 login_manager = LoginManager()
 
 def create_app():
@@ -23,6 +24,7 @@ def create_app():
     db.init_app(app)
     api.init_app(app)
     bcrypt.init_app(app)
+    jwt.init_app(app)
     login_manager.init_app(app)
     CORS(app, resources={r"/*": {"origins": "*"}})  
     
