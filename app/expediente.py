@@ -1,23 +1,98 @@
-from flask_restx import Namespace, Resource
-
+from flask_restx import Namespace, Resource, fields
+from flask import request
+from .models import Paciente, Expediente, User
 expediente = Namespace('expediente', description='Expediente operations')
 
-# expediente_model = expediente_model('Expediente', {
-#     'email': fields.String(required=True, description='Email'),
-#     'password': fields.String(required=True, description='Password'),
-# })
+paciente_model = expediente.model('Paciente', {
+    'nombre': fields.String(),
+    'nombre_segundo': fields.String(),
+    'apellido_paterno': fields.String(),
+    'apellido_materno': fields.String(),
+    'curp': fields.String(),
+    'telefono': fields.String(),
+    'direccion': fields.String(),
+    'estado': fields.String(),
+    'ciudad': fields.String(),
+    'estado_civil': fields.String(),
+    'ocupacion': fields.String(),
+    'id_usuario': fields.Integer(required=True, description='ID del usuario asociado'),
+})
 
 
-@expediente.route('/')
-class Expediente(Resource):
+
+@expediente.route('/paciente')
+class PacienteList(Resource):
+    @expediente.doc('list_pacientes')
     def get(self):
-        return {'message': 'Expediente retrieved'}
+        pacientes = Paciente.query.all()
+        return [paciente.as_dict() for paciente in pacientes], 200
 
-@expediente.route('/create')
-class CreateExpediente(Resource):
+    @expediente.doc('create_paciente')
+    @expediente.expect(paciente_model)
     def post(self):
-        return {'message': 'Expediente created'}
+        data = request.get_json()
+
+        # Verificar si el id_usuario existe
+        id_usuario = data.get('id_usuario')
+        if not User.query.filter_by(id_usuario=id_usuario).first():
+            return {'message': 'Usuario no encontrado'}, 404
+
+        paciente = Paciente.create_paciente(
+            nombre=data.get('nombre', ''),
+            nombre_segundo=data.get('nombre_segundo', ''),
+            apellido_paterno=data.get('apellido_paterno', ''),
+            apellido_materno=data.get('apellido_materno', ''),
+            curp=data.get('curp', ''),
+            telefono=data.get('telefono', ''),
+            direccion=data.get('direccion', ''),
+            estado=data.get('estado', ''),
+            ciudad=data.get('ciudad', ''),
+            estado_civil=data.get('estado_civil', ''),
+            ocupacion=data.get('ocupacion', ''),
+            id_usuario=id_usuario
+        )
+        return {'message': 'Paciente creado exitosamente', 'id_paciente': paciente.id_paciente}, 201
+
+@expediente.route('/paciente/<int:id_paciente>')
+class PacienteResource(Resource):
+    @expediente.doc('get_paciente')
+    def get(self, id_paciente):
+        paciente = Paciente.get_paciente_by_id(id_paciente)
+        if not paciente:
+            return {'message': 'Paciente no encontrado'}, 404
+        return paciente.as_dict(), 200
+
+    @expediente.doc('update_paciente')
+    @expediente.expect(paciente_model)
+    def put(self, id_paciente):
+        data = request.get_json()
+        paciente = Paciente.get_paciente_by_id(id_paciente)
+        if not paciente:
+            return {'message': 'Paciente no encontrado'}, 404
+
+        paciente.update_paciente(
+            nombre=data.get('nombre'),
+            nombre_segundo=data.get('nombre_segundo'),
+            apellido_paterno=data.get('apellido_paterno'),
+            apellido_materno=data.get('apellido_materno'),
+            curp=data.get('curp'),
+            telefono=data.get('telefono'),
+            direccion=data.get('direccion'),
+            estado=data.get('estado'),
+            ciudad=data.get('ciudad'),
+            estado_civil=data.get('estado_civil'),
+            ocupacion=data.get('ocupacion')
+        )
+        return {'message': 'Paciente actualizado exitosamente'}, 200
+
+    @expediente.doc('delete_paciente')
+    def delete(self, id_paciente):
+        paciente = Paciente.get_paciente_by_id(id_paciente)
+        if not paciente:
+            return {'message': 'Paciente no encontrado'}, 404
+        paciente.delete_paciente()
+        return {'message': 'Paciente eliminado exitosamente'}, 200
+
 
 def init_expediente_routes(api_instance):
     api_instance.add_namespace(expediente)
-    
