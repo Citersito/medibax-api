@@ -139,10 +139,20 @@ class Expediente(db.Model):
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
     descripcion = db.Column(db.String(120))        
     
+    def __init__(self, id_paciente, descripcion):
+        self.id_paciente = id_paciente
+        self.descripcion = descripcion
+    
+    @classmethod
+    def create_expediente(cls, id_paciente, descripcion):
+        expediente = cls(id_paciente=id_paciente, descripcion=descripcion)
+        db.session.add(expediente)
+        db.session.commit()
+        return expediente
+    
     @staticmethod
     def get_expediente_by_id(id_expediente):
         return Expediente.query.filter_by(id_expediente=id_expediente).first()
-
 
 class ModificacionExpediente(db.Model):
     __tablename__ = 'modificaciones_expedientes'

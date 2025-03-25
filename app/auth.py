@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from flask_restx import Namespace, Resource, fields
-from app.models import User, Paciente
+from app.models import User, Paciente, Expediente
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import re
 
@@ -49,10 +49,12 @@ class SignUp(Resource):
             telefono=None, direccion=None, estado=None, ciudad=None, estado_civil=None, 
             ocupacion=None, id_usuario=new_user.id_usuario
         )
+        new_Expediente = Expediente.create_expediente(
+            id_paciente=new_Paciente.id_paciente, descripcion="Primer expediente"
+        )
         access_token = create_access_token(identity=new_user.id_usuario)
 
         return {'message': 'User created successfully', 'user': new_user.email, 'access_token': access_token}, 201
-
 @auth.route('/login')
 class Login(Resource):
     @auth.expect(auth_model)
