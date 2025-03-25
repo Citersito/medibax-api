@@ -44,8 +44,8 @@ class SignUp(Resource):
             return {'message': 'User already exists'}, 409
         
         new_user = User.create_user(email=email, password=password)
-        new_paciente = Paciente.create_paciente(nombre=None, apellido_paterno=None, apellido_materno=None, curp=None, telefono=None, direccion=None, estado=None, ciudad=None, estado_civil=None, ocupacion=None, usuario_id=new_user.id)
-        access_token = create_access_token(identity=new_user.id)
+        new_Paciente = Paciente.create_paciente(nombre=None, apellido_paterno=None, apellido_materno=None, curp=None, telefono=None, direccion=None, estado=None, ciudad=None, estado_civil=None, ocupacion=None, id_usuario=new_user.id_usuario)
+        access_token = create_access_token(identity=new_user.id_usuario)
         
         return {'message': 'User created successfully', 'user': new_user.email, 'access_token': access_token}, 201
 
@@ -66,7 +66,7 @@ class Login(Resource):
         user = User.query.filter_by(email=email).first()
         
         if user and user.check_password(password):
-            access_token = create_access_token(identity=user.id)
+            access_token = create_access_token(identity=user.id_usuario)
             return {'message': 'Login successful', 'user': user.email, 'access_token': access_token}, 200
         
         return {'message': 'Invalid email or password'}, 401
