@@ -39,14 +39,18 @@ class SignUp(Resource):
 
         if not is_valid_password(password):
             return {'message': 'Password must be at least 7 characters long, contain at least one uppercase letter, one lowercase letter, and one number'}, 400
-        
+
         if User.query.filter_by(email=email).first():
             return {'message': 'User already exists'}, 409
-        
+
         new_user = User.create_user(email=email, password=password)
-        new_Paciente = Paciente.create_paciente(nombre=None, apellido_paterno=None, apellido_materno=None, curp=None, telefono=None, direccion=None, estado=None, ciudad=None, estado_civil=None, ocupacion=None, id_usuario=new_user.id_usuario)
+        new_Paciente = Paciente.create_paciente(
+            nombre=None, apellido_paterno=None, apellido_materno=None, curp=None,
+            telefono=None, direccion=None, estado=None, ciudad=None, estado_civil=None, 
+            ocupacion=None, id_usuario=new_user.id_usuario
+        )
         access_token = create_access_token(identity=new_user.id_usuario)
-        
+
         return {'message': 'User created successfully', 'user': new_user.email, 'access_token': access_token}, 201
 
 @auth.route('/login')
@@ -64,11 +68,11 @@ class Login(Resource):
             return {'message': 'Invalid password format'}, 400
 
         user = User.query.filter_by(email=email).first()
-        
+
         if user and user.check_password(password):
             access_token = create_access_token(identity=user.id_usuario)
-            return {'message': 'Login successful', 'user': user.email, 'access_token': access_token}, 200
-        
+            return {'message': 'Login successful', 'user': user.email, 'access_token': access_token, 'user_id': user.id_usuario}, 200
+
         return {'message': 'Invalid email or password'}, 401
 
 @auth.route('/logout')
@@ -77,7 +81,7 @@ class Logout(Resource):
     def post(self):
         # No need to logout with JWT; just remove the token on the client side
         return {'message': 'Logout successful'}, 200
-    
+
 @auth.route('/protected')
 class Protected(Resource):
     @jwt_required()
