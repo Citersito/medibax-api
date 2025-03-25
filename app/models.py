@@ -123,13 +123,7 @@ class Paciente(db.Model):
         db.session.delete(self)
         db.session.commit()
         
-    def as_dict(self):
-        result = {c.name: getattr(self, c.name) for c in self.__table__.columns}
-        if self.created_at:
-            result['created_at'] = self.created_at.isoformat()
-        if self.updated_at:
-            result['updated_at'] = self.updated_at.isoformat()
-        return result
+
 class Expediente(db.Model):
     __tablename__ = 'expedientes'
         
