@@ -1,6 +1,7 @@
 from flask_restx import Namespace, Resource, fields
 from flask import request
 from .models import Paciente, Expediente, User
+
 expediente = Namespace('expediente', description='Expediente operations')
 
 paciente_model = expediente.model('Paciente', {
@@ -15,10 +16,8 @@ paciente_model = expediente.model('Paciente', {
     'ciudad': fields.String(),
     'estado_civil': fields.String(),
     'ocupacion': fields.String(),
-    'id_usuario': fields.Integer(required=True, description='ID del usuario asociado'),
+    'usuario_id': fields.Integer(required=True, description='ID del usuario asociado'),
 })
-
-
 
 @expediente.route('/paciente')
 class PacienteList(Resource):
@@ -32,9 +31,9 @@ class PacienteList(Resource):
     def post(self):
         data = request.get_json()
 
-        # Verificar si el id_usuario existe
-        id_usuario = data.get('id_usuario')
-        if not User.query.filter_by(id_usuario=id_usuario).first():
+        # Verificar si el usuario_id existe
+        usuario_id = data.get('usuario_id')
+        if not User.query.filter_by(id=usuario_id).first():
             return {'message': 'Usuario no encontrado'}, 404
 
         paciente = Paciente.create_paciente(
@@ -49,24 +48,24 @@ class PacienteList(Resource):
             ciudad=data.get('ciudad', ''),
             estado_civil=data.get('estado_civil', ''),
             ocupacion=data.get('ocupacion', ''),
-            id_usuario=id_usuario
+            usuario_id=usuario_id
         )
-        return {'message': 'Paciente creado exitosamente', 'id_paciente': paciente.id_paciente}, 201
+        return {'message': 'Paciente creado exitosamente', 'id_paciente': paciente.id}, 201
 
-@expediente.route('/paciente/<int:id_paciente>')
+@expediente.route('/paciente/<int:id>')
 class PacienteResource(Resource):
     @expediente.doc('get_paciente')
-    def get(self, id_paciente):
-        paciente = Paciente.get_paciente_by_id(id_paciente)
+    def get(self, id):
+        paciente = Paciente.get_paciente_by_id(id)
         if not paciente:
             return {'message': 'Paciente no encontrado'}, 404
         return paciente.as_dict(), 200
 
     @expediente.doc('update_paciente')
     @expediente.expect(paciente_model)
-    def put(self, id_paciente):
+    def put(self, id):
         data = request.get_json()
-        paciente = Paciente.get_paciente_by_id(id_paciente)
+        paciente = Paciente.get_paciente_by_id(id)
         if not paciente:
             return {'message': 'Paciente no encontrado'}, 404
 
@@ -86,13 +85,12 @@ class PacienteResource(Resource):
         return {'message': 'Paciente actualizado exitosamente'}, 200
 
     @expediente.doc('delete_paciente')
-    def delete(self, id_paciente):
-        paciente = Paciente.get_paciente_by_id(id_paciente)
+    def delete(self, id):
+        paciente = Paciente.get_paciente_by_id(id)
         if not paciente:
             return {'message': 'Paciente no encontrado'}, 404
         paciente.delete_paciente()
         return {'message': 'Paciente eliminado exitosamente'}, 200
-
 
 def init_expediente_routes(api_instance):
     api_instance.add_namespace(expediente)
