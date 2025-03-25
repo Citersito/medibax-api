@@ -36,7 +36,9 @@ def create_app():
     # Inicializacion de rutas
     from app.routes import init_routes
     from app.auth import init_auth_routes
+    from app.expediente import init_expediente_routes
     init_auth_routes(api)
     init_routes(api)
+    init_expediente_routes(api)
     
     return app
