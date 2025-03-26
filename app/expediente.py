@@ -1,5 +1,8 @@
 from flask_restx import Namespace, Resource, fields
-from flask import request
+from flask import request, jsonify, send_file
+import qrcode
+import io
+import uuid
 from .models import Paciente, Expediente, ModificacionExpediente, HistoriaClinica, AntecedentesPersonales, AntecedentesFamiliares, User
 
 expediente = Namespace('expediente', description='Expediente operations')
@@ -277,6 +280,37 @@ class AntecedenteFamiliarResource(Resource):
             return {'message': 'Antecedente familiar no encontrado'}, 404
         return antecedente_familiar.as_dict(), 200
 
-
+@expediente.route('/exportar_qr/<int:id_expediente>', methods=['GET'])
+class ExportarQR(Resource):
+    def get(self, id_expediente):
+        expediente = Expediente.query.filter_by(id_expediente=id_expediente).first()
+        if not expediente:
+            return {'message': 'Expediente no encontrado'}, 404
+        
+        # Usar el token único existente o generar uno nuevo si no existe
+        if not expediente.token_unico:
+            expediente.token_unico = str(uuid.uuid4())
+            db.session.commit()
+        
+        # Crear la URL pública del expediente
+        url_publica = f"https://medibax.com/expediente/{expediente.token_unico}"
+        
+        # Generar el código QR basado en la URL
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(url_publica)
+        qr.make(fit=True)
+        
+        img = qr.make_image(fill='black', back_color='white')
+        img_io = io.BytesIO()
+        img.save(img_io, 'PNG')
+        img_io.seek(0)
+        
+        return send_file(img_io, mimetype='image/png', as_attachment=True, download_name='expediente_qr.png')
+    
 def init_expediente_routes(api_instance):
     api_instance.add_namespace(expediente)

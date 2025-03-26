@@ -137,15 +137,18 @@ class Expediente(db.Model):
     id_paciente = db.Column(db.Integer, db.ForeignKey('pacientes.id_paciente', ondelete='CASCADE'))
     paciente = db.relationship('Paciente', backref=db.backref('expedientes', lazy=True))
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
-    descripcion = db.Column(db.String(120))        
+    descripcion = db.Column(db.String(120))
+    token_unico = db.Column(db.String(36), unique=True)  # Nuevo campo para almacenar el token único
     
-    def __init__(self, id_paciente, descripcion):
+    def __init__(self, id_paciente, descripcion, token_unico=None):
         self.id_paciente = id_paciente
         self.descripcion = descripcion
+        self.token_unico = token_unico
     
     @classmethod
     def create_expediente(cls, id_paciente, descripcion):
-        expediente = cls(id_paciente=id_paciente, descripcion=descripcion)
+        token_unico = str(uuid.uuid4())  # Generar un token único
+        expediente = cls(id_paciente=id_paciente, descripcion=descripcion, token_unico=token_unico)
         db.session.add(expediente)
         db.session.commit()
         return expediente
@@ -154,14 +157,18 @@ class Expediente(db.Model):
     def get_expediente_by_id(id_expediente):
         return Expediente.query.filter_by(id_expediente=id_expediente).first()
     
+    @staticmethod
+    def get_expediente_by_token(token_unico):
+        return Expediente.query.filter_by(token_unico=token_unico).first()  # Nuevo método para obtener expediente por token
+    
     def as_dict(self):
         return {
             'id_expediente': self.id_expediente,
             'id_paciente': self.id_paciente,
             'fecha_creacion': self.fecha_creacion.isoformat() if self.fecha_creacion else None,
-            'descripcion': self.descripcion
+            'descripcion': self.descripcion,
+            'token_unico': self.token_unico  # Incluir el token en la representación del diccionario
         }
-
 class ModificacionExpediente(db.Model):
     __tablename__ = 'modificaciones_expedientes'
     
