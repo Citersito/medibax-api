@@ -1,4 +1,5 @@
 from . import db, bcrypt, login_manager
+import uuid
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from flask_login import UserMixin
 from datetime import datetime
@@ -138,7 +139,7 @@ class Expediente(db.Model):
     paciente = db.relationship('Paciente', backref=db.backref('expedientes', lazy=True))
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
     descripcion = db.Column(db.String(120))
-    token_unico = db.Column(db.String(36), unique=True)  # Nuevo campo para almacenar el token único
+    token_unico = db.Column(db.String(36), unique=True)  # Campo para almacenar el token único
     
     def __init__(self, id_paciente, descripcion, token_unico=None):
         self.id_paciente = id_paciente
@@ -159,7 +160,7 @@ class Expediente(db.Model):
     
     @staticmethod
     def get_expediente_by_token(token_unico):
-        return Expediente.query.filter_by(token_unico=token_unico).first()  # Nuevo método para obtener expediente por token
+        return Expediente.query.filter_by(token_unico=token_unico).first()  # Método para obtener expediente por token
     
     def as_dict(self):
         return {
