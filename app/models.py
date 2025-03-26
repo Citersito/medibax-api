@@ -153,6 +153,14 @@ class Expediente(db.Model):
     @staticmethod
     def get_expediente_by_id(id_expediente):
         return Expediente.query.filter_by(id_expediente=id_expediente).first()
+    
+    def as_dict(self):
+        return {
+            'id_expediente': self.id_expediente,
+            'id_paciente': self.id_paciente,
+            'fecha_creacion': self.fecha_creacion.isoformat() if self.fecha_creacion else None,
+            'descripcion': self.descripcion
+        }
 
 class ModificacionExpediente(db.Model):
     __tablename__ = 'modificaciones_expedientes'
